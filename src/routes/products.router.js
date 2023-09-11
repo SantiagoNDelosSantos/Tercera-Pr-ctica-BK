@@ -7,7 +7,7 @@ import ProductController from "../controllers/productsController.js";
 // Passport:
 import passport from "passport";
 
-// Import Middleware Roles:
+// Import Middleware Admin:
 import { rolesMiddlewareAdminAndPremiun } from "./Middlewares/roles.middleware.js";
 
 // Instancia de Router:

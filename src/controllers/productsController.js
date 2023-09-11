@@ -23,8 +23,7 @@ export default class ProductController {
     async createProductController(req, res, next) {
         const productData = req.body;
         try {
-            if (!productData.title || typeof productData.title === 'number' || !productData.description || typeof productData.description === 'number' || !productData.code || typeof productData.code === 'number' || !productData.price || typeof productData.price === 'string' || productData.price <= 0 || !productData.stock || typeof productData.stock === 'string' || productData.stock <= 0 || !productData.category || typeof productData.category === 'number' || !productData.thumbnails || Object.keys(productData).length === 0)
-            {
+            if (!productData.title || typeof productData.title === 'number' || !productData.description || typeof productData.description === 'number' || !productData.code || typeof productData.code === 'number' || !productData.price || typeof productData.price === 'string' || productData.price <= 0 || !productData.stock || typeof productData.stock === 'string' || productData.stock <= 0 || !productData.category || typeof productData.category === 'number' || !productData.thumbnails || Object.keys(productData).length === 0) {
                 CustomError.createError({
                     name: "Error al crear el nuevo producto.",
                     cause: ErrorGenerator.generateProductDataErrorInfo(productData),
@@ -37,6 +36,19 @@ export default class ProductController {
         };
         let response = {};
         try {
+            // Extraemos el role del owner: 
+            const ownerRole = req.user.role;
+            let owner = ""
+            if (ownerRole === "premium") {
+                // Si es premium agregamos su id a owner:
+                owner = req.user.userID;
+            } else if (ownerRole === "admin") {
+                // Si es admin agregamos su role a owner:
+                owner = req.user.role;
+            }
+            // Agregamos el owner a productData: 
+            productData.owner = owner
+            // Enviamos toda la información del producto incluyendo el owner al service: 
             const resultService = await this.productService.createProductService(productData);
             response.statusCode = resultService.statusCode;
             response.message = resultService.message;
@@ -139,15 +151,19 @@ export default class ProductController {
         };
         let response = {};
         try {
-            const resultService = await this.productService.deleteProductService(pid);
+            // Extraemos el role del owner: 
+            const ownerRole = req.user.role;
+            // Creamos el owner que vamos a pasar al service: 
+            const owner = ownerRole === "premium" ? req.user.userID : ownerRole === "admin" ? req.user.role : undefined;
+            // Enviamos el pid y el owner al service: 
+            const resultService = await this.productService.deleteProductService(pid, owner);
             response.statusCode = resultService.statusCode;
             response.message = resultService.message;
             if (resultService.statusCode === 500) {
                 req.logger.error(response.message);
-            } else if (resultService.statusCode === 404) {
+            } else if (resultService.statusCode === 404 || resultService.statusCode === 401) {
                 req.logger.warn(response.message);
             } else if (resultService.statusCode === 200) {
-                response.result = resultService.result;
                 // Actualización Real Time: 
                 const products = await this.productService.getAllProductsService();
                 req.socketServer.sockets.emit('products', products.result);
@@ -186,15 +202,19 @@ export default class ProductController {
         };
         let response = {};
         try {
-            const resultService = await this.productService.updateProductService(pid, updatedFields);
+            // Extraemos el role del owner: 
+            const ownerRole = req.user.role;
+            // Creamos el owner que vamos a pasar al service: 
+            const owner = ownerRole === "premium" ? req.user.userID : ownerRole === "admin" ? req.user.role : undefined;
+            // Enviamos el pid, el cuerpo para el update y el owner al service: 
+            const resultService = await this.productService.updateProductService(pid, updatedFields, owner);
             response.statusCode = resultService.statusCode;
             response.message = resultService.message;
             if (resultService.statusCode === 500) {
                 req.logger.error(response.message);
-            } else if (resultService.statusCode === 404) {
+            } else if (resultService.statusCode === 404 || resultService.statusCode === 401) {
                 req.logger.warn(response.message);
             } else if (resultService.statusCode === 200) {
-                response.result = resultService.result;
                 // Actualización Real Time: 
                 const products = await this.productService.getAllProductsService();
                 req.socketServer.sockets.emit('products', products.result);
@@ -202,7 +222,7 @@ export default class ProductController {
             };
         } catch (error) {
             response.statusCode = 500;
-            response.message = "Error al actualizar el producto - Controller:" + error.message;
+            response.message = "Error al actualizar el producto - Controller: " + error.message;
             req.logger.error(response.message);
         };
         return response;

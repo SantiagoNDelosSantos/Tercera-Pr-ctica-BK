@@ -79,20 +79,36 @@ export default class ProductService {
     };
 
     // Eliminar un producto por su ID - Service:
-    async deleteProductService(pid) {
+    async deleteProductService(pid, owner) {
         let response = {};
         try {
-            const resultDAO = await this.productDao.deleteProduct(pid);
-            if (resultDAO.status === "error") {
+            const productInfo = await this.productDao.getProductById(pid);
+            if (productInfo.status === "error") {
                 response.statusCode = 500;
-                response.message = resultDAO.message;
-            } else if (resultDAO.status === "not found product") {
+                response.message = productInfo.message;
+            } else if (productInfo.status === "not found product") {
                 response.statusCode = 404;
-                response.message = `No se encontró ningún producto con el ID ${pid}.`;
-            } else if (resultDAO.status === "success") {
-                response.statusCode = 200;
-                response.message = "Producto eliminado exitosamente.";
-                response.result = resultDAO.result;
+                response.message = `No se encontro ningún producto con el ID ${pid}.`;
+            } else if (productInfo.status === "success") {
+                if (owner === "admin" || owner === undefined || productInfo.result.owner === owner) {
+                    // Si el owner es admin o uindefined (Todos los productos antes de esta integración no tienen campo owner) puede eliminar cualquier producto. En el caso del user premium este solo puede eliminar los productos que le pertenezcan: 
+                    const resultDAO = await this.productDao.deleteProduct(pid);
+                    if (resultDAO.status === "error") {
+                        response.statusCode = 500;
+                        response.message = resultDAO.message;
+                    } else if (resultDAO.status === "not found product") {
+                        response.statusCode = 404;
+                        response.message = `No se encontró ningún producto con el ID ${pid}.`;
+                    } else if (resultDAO.status === "success") {
+                        response.statusCode = 200;
+                        response.message = "Producto eliminado exitosamente.";
+                        response.result = resultDAO.result;
+                    };
+                } else {
+                    // Si el user premium intenta eliminar un producto que no le pertenecer se le deniega la acción:
+                    response.statusCode = 401;
+                    response.message = "Solo puedes eliminar los productos que te pertenecen.";
+                };
             };
         } catch (error) {
             response.statusCode = 500;
@@ -102,20 +118,35 @@ export default class ProductService {
     };
 
     // Actualizar un producto - Service: 
-    async updateProductService(pid, updateProduct) {
+    async updateProductService(pid, updateProduct, owner) {
         let response = {};
         try {
-            const resultDAO = await this.productDao.updateProduct(pid, updateProduct);
-            if (resultDAO.status === "error") {
+            const productInfo = await this.productDao.getProductById(pid);
+            if (productInfo.status === "error") {
                 response.statusCode = 500;
-                response.message = resultDAO.message;
-            } else if (resultDAO.status === "not found product") {
+                response.message = productInfo.message;
+            } else if (productInfo.status === "not found product") {
                 response.statusCode = 404;
-                response.message = `No se encontró ningún producto con el ID ${pid}.`;
-            } else if (resultDAO.status === "success") {
-                response.statusCode = 200;
-                response.message = "Producto actualizado exitosamente.";
-                response.result = resultDAO.result;
+                response.message = `No se encontro ningún producto con el ID ${pid}.`;
+            } else if (productInfo.status === "success") {
+                if (owner === "admin" || owner === undefined || productInfo.result.owner === owner) {
+                    // Si el owner es admin o uindefined (Todos los productos antes de esta integración no tienen campo owner) puede actualizar cualquier producto. En el caso del user premium este solo puede actualizar los productos que le pertenezcan: 
+                    const resultDAO = await this.productDao.updateProduct(pid, updateProduct);
+                    if (resultDAO.status === "error") {
+                        response.statusCode = 500;
+                        response.message = resultDAO.message;
+                    } else if (resultDAO.status === "not found product") {
+                        response.statusCode = 404;
+                        response.message = `No se encontró ningún producto con el ID ${pid}.`;
+                    } else if (resultDAO.status === "success") {
+                        response.statusCode = 200;
+                        response.message = "Producto actualizado exitosamente.";
+                    };
+                } else {
+                    // Si el user premium que intenta actualizar un producto que no le pertenece se le deniega la actialización:
+                    response.statusCode = 401;
+                    response.message = "Solo puedes modificar los productos que te pertenecen.";
+                };
             };
         } catch (error) {
             response.statusCode = 500;

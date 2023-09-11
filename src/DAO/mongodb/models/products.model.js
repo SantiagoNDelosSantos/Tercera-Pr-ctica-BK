@@ -32,6 +32,10 @@ const ProductsSchema = new mongoose.Schema({
         type: Array,
         required: true
     },
+    owner: {
+        type: String,
+        required: true
+    },
 })
 
 ProductsSchema.plugin(mongoosePaginate)

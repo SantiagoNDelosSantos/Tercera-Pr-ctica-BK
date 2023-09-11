@@ -126,12 +126,15 @@ export default class CartController {
         };
         let response = {};
         try {
-            const resultService = await this.cartService.addProductToCartService(cid, pid, quantity);
+            // Extraemos el ID del user: 
+            const userId = req.user.userID;
+            // Enviamos el cid, pid, quantity y el user al service: 
+            const resultService = await this.cartService.addProductToCartService(cid, pid, quantity, userId);
             response.statusCode = resultService.statusCode;
             response.message = resultService.message;
             if (resultService.statusCode === 500) {
                 req.logger.error(response.message);
-            } else if (resultService.statusCode === 404) {
+            } else if (resultService.statusCode === 404 || resultService.statusCode === 401) {
                 req.logger.warn(response.message);
             } else if (resultService.statusCode === 200) {
                 response.result = resultService.result;
