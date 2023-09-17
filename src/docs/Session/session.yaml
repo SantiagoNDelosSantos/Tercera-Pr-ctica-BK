@@ -1,4 +1,6 @@
+# RUTAS:
 paths:
+  # Ruta de registro: 
   /api/sesions/register:
     post:
       summary: Registro de usuario
@@ -9,7 +11,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/requestBodies/Register"
+              $ref: "#/components/requestBodies/Register" 
       responses:
         '200':
           description: Registro exitoso (Esto indica que el registro se ha completado exitosamente).
@@ -30,9 +32,10 @@ paths:
               (Esto indica un error producido en las capas del módulo session al intentar crear al nuevo usuario en la BD).
             - Error de registro en local.passport.js - Register
               (Esto indica un error en la estrategia de registro en el archivo local.passport.js).
-
+# COMPONENTES:
 components:
   requestBodies:
+    # RequestBody - Ruta de registro: 
     Register:
       content:
         application/json:
@@ -61,3 +64,4 @@ components:
               email: santiagodelossantos630@gmail.com
               age: 23
               password: Sd1234
+  

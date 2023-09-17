@@ -1,17 +1,17 @@
 paths:
-  '/api/products':
+  /api/products:
     post:
       summary: Crear un producto
+      security:
+        - BearerAuth: []  # Usa el esquema BearerAuth definido en components
       tags:
         - Products
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/requestBodies/CrearUnProducto'
+              $ref: '#/components/schemas/CrearUnProducto'
       responses:
         '200':
           description: Devuelve el producto creado
@@ -19,6 +19,8 @@ paths:
           description: Unauthorized
         '500':
           description: Error
+
+  # Traer todos los productos:
     get:
       summary: Traer todos los productos
       tags:
@@ -35,7 +37,7 @@ components:
       in: header
       scheme: bearer
       bearerFormat: JWT
-  requestBodies:
+  schemas:
     CrearUnProducto:
       type: object
       properties:
