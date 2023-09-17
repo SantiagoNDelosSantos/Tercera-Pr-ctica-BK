@@ -41,6 +41,7 @@ export const initializePassportGitHub = (req, res, next) => {
             }
         } catch (error) {
             return done(null, false, {
+                statusCode: 500,
                 message: 'Error de registro en la autenticación por GitHub - gitHub.passport.js: ' + error.message
             });
         };
@@ -50,25 +51,40 @@ export const initializePassportGitHub = (req, res, next) => {
 };
 
 export const createBDUserGH = async (req, res, user) => {
-
+    let response = {};
     try {
 
         // Buscamos al usuario en la base de datos: 
         const existSessionControl = await sessionController.getUserByEmailOrNameOrIdController(req, res, user);
 
+        // Verificamos si no hubo algun error en el  módulo de session, si lo hubo devolvemos el mensaje de error:
+        if (existSessionControl.statusCode === 500) {
+            response.statusCode = 500;
+            response.message = existSessionControl.message;
+            return response;
+        }
+
         // Verificamos si el usuario ya esta registrado, en dicho caso devolvemos el resultado:
         if (existSessionControl.statusCode === 200) {
-            const exist = existSessionControl.result;
-            return exist;
+            response.statusCode = 200;
+            response.result = existSessionControl.result;
+            return response;
         }
 
         // Si el usuario no esta registrado en la base de datos (404), entonces se procede a crear un usuario con los datos de GitHub: 
         else if (existSessionControl.statusCode === 404) {
 
-            // Creammos un carrito para el usuario: 
+            // Creamos un carrito para el usuario: 
             const resultCartControl = await cartController.createCartController(req, res);
 
-            // Si no hubo error en el cartController continuamos con la creación del usuario:
+            // Validamos si no hubo algun error en el  módulo de cart, si lo hubo devolvemos el mensaje de error:
+            if (resultCartControl.statusCode === 500) {
+                response.statusCode = 500;
+                response.message = resultCartControl.message;
+                return response;
+            }
+
+            // Si no hubo error en el módulo de cart continuamos con la creación del usuario:
             if (resultCartControl.statusCode === 200) {
 
                 // Extraemos solo el carrito creado por el cartController: 
@@ -88,16 +104,26 @@ export const createBDUserGH = async (req, res, user) => {
                 // Creamos el nuevo usuario:
                 const createSessionControl = await sessionController.createUserControler(req, res, newUser);
 
-                // Si no hubo error en el sessionController devolvemos el nuevo usuario:
+                // Verificamos si no hubo algun error en el  módulo de session, si lo hubo devolvemos el mensaje de error:
+                if (createSessionControl.statusCode === 500) {
+                    response.statusCode = 500;
+                    response.message = createSessionControl.message;
+                    return response;
+                }
+
+                // Si no hubo error en el módulo de session, devolvemos el nuevo usuario:
                 if (createSessionControl.statusCode === 200) {
-                    const userSemiCompleto = createSessionControl.result;
-                    return userSemiCompleto
+                    response.statusCode = 200;
+                    response.result = createSessionControl.result;
+                    return response;
                 }
             }
         };
     } catch (error) {
-        req.logger.error(error.message)
-        return 'Error de registro en createBDuserGH - github.passport.js: ' + error.message
+        response.statusCode = 500;
+        response.message = 'Error de registro en createBDuserGH - github.passport.js: ' + error.message;
+        req.logger.error(response.message);
+        return response;
     };
 
 };

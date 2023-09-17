@@ -5,8 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev-D": "nodemon src/config.js --mode dev --exec \"nodemon src/server.js\"",
-    "dev-P": "nodemon src/config.js --mode prod --exec \"nodemon src/server.js\""
+    "dev": "nodemon src/config.js --mode dev --exec \"nodemon src/server.js\"",
+    "prod": "nodemon src/config.js --mode prod --exec \"nodemon src/server.js\""
   },
   "keywords": [],
   "author": "",
@@ -32,6 +32,8 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "socket.io": "^4.6.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
     "sweetalert2": "^11.7.12",
     "uuid": "^9.0.0",
     "winston": "^3.10.0"

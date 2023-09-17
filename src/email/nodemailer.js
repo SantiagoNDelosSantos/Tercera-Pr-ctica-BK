@@ -20,7 +20,7 @@ export default class Mail {
                 pass: envAuthPassTransport,
             }
         })
-    }
+    };
 
     async sendMail(user, subject, html) {
         let result = await this.transport.sendMail({
@@ -29,8 +29,7 @@ export default class Mail {
             subject,
             html
         });
-
         return result;
-    }
+    };
 
-}
+};

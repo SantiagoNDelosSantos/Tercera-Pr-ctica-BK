@@ -54,9 +54,10 @@ export const initializePassportLocal = (req, res) => {
                 // Buscamos el correo en la base de datos: 
                 const existSessionControl = await sessionController.getUserByEmailOrNameOrIdController(req, res, username);
 
-                // Verificamos si no hubo algun error en el sessionController, si lo hubo devolvemos el mensaje de error:
+                // Verificamos si no hubo algun error en el módulo de session, si lo hubo devolvemos el mensaje de error:
                 if (existSessionControl.statusCode === 500) {
                     return done(null, false, {
+                        statusCode: 500,
                         message: existSessionControl.message
                     });
                 }
@@ -64,24 +65,26 @@ export const initializePassportLocal = (req, res) => {
                 // Verificamos si el usuario ya esta registrado, en dicho caso le decimos que vaya al login:
                 else if (existSessionControl.statusCode === 200) {
                     return done(null, false, {
+                        statusCode: 401,
                         message: 'Ya existe una cuenta asociada a este correo. Presione en "Ingresa aquí" para iniciar sesión.'
                     });
                 }
 
-                // Si el usuario no esta registrado en la base de datos (404), entocnes se procede al registro: 
+                // Si el usuario no esta registrado en la base de datos (404), entonces se procede al registro: 
                 else if (existSessionControl.statusCode === 404) {
 
-                    // Creammos un carrito para el usuario: 
+                    // Creamos un carrito para el usuario: 
                     const resultCartControl = await cartController.createCartController(req, res);
 
-                    // Validamos si no hubo algun error en el cartController, si lo hubo devolvemos el mensaje de error:
+                    // Validamos si no hubo algun error en el  módulo de cart, si lo hubo devolvemos el mensaje de error:
                     if (resultCartControl.statusCode === 500) {
                         return done(null, false, {
+                            statusCode: 500,
                             message: resultCartControl.message
                         });
                     }
 
-                    // Si no hubo error en el cartController continuamos con el registro:
+                    // Si no hubo error en el  módulo de cart continuamos con el registro:
                     else if (resultCartControl.statusCode === 200) {
 
                         // Extraemos solo el carrito creado por el cartController: 
@@ -101,23 +104,27 @@ export const initializePassportLocal = (req, res) => {
                         // Creamos el nuevo usuario:
                         const createSessionControl = await sessionController.createUserControler(req, res, newUser);
 
-                        // Verificamos si no hubo algun error en el sessionController, si lo hubo devolvemos el mensaje de error:
+                        // Verificamos si no hubo algun error en el  módulo de session, si lo hubo devolvemos el mensaje de error:
                         if (createSessionControl.statusCode === 500) {
                             return done(null, false, {
+                                statusCode: 500,
                                 message: createSessionControl.message
                             });
                         }
 
-                        // Si no hubo error en el sessionController se crea el nuevo usuario y se finaliza el registro:
+                        // Si no hubo error en el  módulo de session se crea el nuevo usuario y se finaliza el registro:
                         else if (createSessionControl.statusCode === 200) {
                             const user = createSessionControl.result;
-                            return done(null, user);
+                            return done(null, user, {
+                                statusCode: 200,
+                            });
                         }
                     }
                 };
             } catch (error) {
                 req.logger.error(error)
                 return done(null, false, {
+                    statusCode: 500,
                     message: 'Error de registro en local.passport.js - Register: ' + error.message
                 });
             };
@@ -136,7 +143,7 @@ export const initializePassportLocal = (req, res) => {
             try {
 
                 // Verificar si el usuario es administrador
-                if (username === envAdminEmailCoder && password ===  envAdminPassCoder) {
+                if (username === envAdminEmailCoder && password === envAdminPassCoder) {
                     let userAdmin = {
                         first_name: "Admin",
                         last_name: "X",
@@ -146,7 +153,9 @@ export const initializePassportLocal = (req, res) => {
                         role: "admin",
                         cart: null,
                     };
-                    return done(null, userAdmin);
+                    return done(null, userAdmin, {
+                        statusCode: 200,
+                    });
                 }
 
                 // Si no es admin procedemos a logueo del usuario:
@@ -155,9 +164,10 @@ export const initializePassportLocal = (req, res) => {
                     // Buscamos el correo en la base de datos: 
                     const existDBSessionControl = await sessionController.getUserByEmailOrNameOrIdController(req, res, username);
 
-                    // Verificamos si no hubo algun error en el sessionController, si lo hubo devolvemos el mensaje de error:
+                    // Verificamos si no hubo algun error en el  módulo de session, si lo hubo devolvemos el mensaje de error:
                     if (existDBSessionControl.statusCode === 500) {
                         return done(null, false, {
+                            statusCode: 500,
                             message: existDBSessionControl.message
                         });
                     }
@@ -165,6 +175,7 @@ export const initializePassportLocal = (req, res) => {
                     // Si el usuario no esta registrado en la base de datos (404), entocnes le decimos que se registre: 
                     else if (existDBSessionControl.statusCode === 404) {
                         return done(null, false, {
+                            statusCode: 404,
                             message: 'No existe una cuenta asociada a este correo. Presione en "Regístrarse aquí" para crear una cuenta.'
                         });
                     }
@@ -178,18 +189,22 @@ export const initializePassportLocal = (req, res) => {
                         // Si el usuario existe en la base de datos, verificamos que la contraseña sea válida:
                         if (!isValidPassword(user, password)) {
                             return done(null, false, {
+                                statusCode: 401,
                                 message: 'Existe una cuenta asociada a este correo pero, la contraseña ingresada es incorrecta.'
                             });
                         }
 
                         // Si el usuario existe y la contraseña es correcta, retornar el usuario autenticado:
-                        return done(null, user);
+                        return done(null, user, {
+                            statusCode: 200,
+                        });
                     }
                 }
 
             } catch (error) {
                 req.logger.error(error)
                 return done(null, false, {
+                    statusCode: 500,
                     message: 'Error de registro en local.passport.js - Login: ' + error.message
                 });
             };

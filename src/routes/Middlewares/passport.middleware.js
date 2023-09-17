@@ -53,11 +53,11 @@ export const registerUser = (req, res, next) => {
             return next(err);
         }
         if (!user) {
-            return res.status(401).json({
+            return res.status(info.statusCode).json({
                 message: info.message
             });
         }
-        res.json({
+        res.status(info.statusCode).json({
             message: 'Registro exitoso',
             user
         });
@@ -86,7 +86,7 @@ export const loginUser = (req, res, next) => {
             return next(err);
         };
         if (!user) {
-            return res.status(401).json({
+            return res.status(info.statusCode).json({
                 message: info.message
             });
         } else {
@@ -103,8 +103,8 @@ export const loginUser = (req, res, next) => {
                 httpOnly: true,
                 signed: true,
                 maxAge: 7 * 24 * 60 * 60 * 1000
-            }).send({
-                status: 'success',
+            }).res.status(info.statusCode).json({
+                message: 'Login exitoso',
                 role: user.role
             });
         };
@@ -120,21 +120,26 @@ export const authenticateWithGitHub = (req, res, next) => {
             return next(err);
         };
         if (!user) {
-            return res.status(401).json({
+            return res.status(info.statusCode).json({
                 message: info.message
             });
         } else if (user) {
-            const userSemiCompleto = await createBDUserGH(req, res, user, next);
-            if (userSemiCompleto.password === "Sin contraseña.") {
+            const resultDB_GH = await createBDUserGH(req, res, user, next);
+            if (resultDB_GH.statusCode === 500){
+                return res.status(resultDB_GH.statusCode).json({
+                    message: resultDB_GH.message
+                });
+            } else if (resultDB_GH.result.password !== "Sin contraseña.") {
+                res.redirect('/products');
+            } 
+            else if (resultDB_GH.result.password === "Sin contraseña.") {
                 // Cookie con el ID del usuario creado mediante GitHub para que el formulario extra pueda acceder al usuario en la base de datos y actualizarlo con los datos complementarios, antes de crear el token de jwt: 
-                res.cookie(envCoderUserIDCookie, userSemiCompleto._id, {
+                res.cookie(envCoderUserIDCookie, resultDB_GH.result._id, {
                     httpOnly: true,
                     signed: true,
-                    maxAge: 1 * 60 * 1000
+                    maxAge: 3 * 60 * 1000
                 }).redirect('/completeProfile');
-            } else {
-                res.redirect('/products');
-            };
+            }
         }
     })(req, res, next);
 };

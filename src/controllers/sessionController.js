@@ -174,7 +174,7 @@ export default class SessionController {
         };
         let response = {};
         try {
-            const resultService = await this.sessionService.changeRoleService( uid);
+            const resultService = await this.sessionService.changeRoleService( uid, res);
             response.statusCode = resultService.statusCode;
             response.message = resultService.message;
             if (resultService.statusCode === 500) {

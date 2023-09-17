@@ -1,0 +1,72 @@
+paths:
+  '/api/products':
+    post:
+      summary: Crear un producto
+      tags:
+        - Products
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/requestBodies/CrearUnProducto'
+      responses:
+        '200':
+          description: Devuelve el producto creado
+        '401':
+          description: Unauthorized
+        '500':
+          description: Error
+    get:
+      summary: Traer todos los productos
+      tags:
+        - Products
+      responses:
+        '200':
+          description: Devuelve todos los productos
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: apiKey
+      name: Authorization
+      in: header
+      scheme: bearer
+      bearerFormat: JWT
+  requestBodies:
+    CrearUnProducto:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Nombre del producto
+        description:
+          type: string
+          description: Especificaciones técnicas del producto
+        code:
+          type: string
+          description: Código del producto
+        price:
+          type: number
+          description: Valor del producto
+        stock:
+          type: number
+          description: Stock disponible
+        category:
+          type: string
+          description: Categoría a la que pertenece el producto
+        thumbnails:
+          type: array
+          description: Arreglo que contiene los enlaces correspondientes a las imágenes del producto
+      example:
+        title: Motorola - G32
+        description: EL MODELO G32 DE MOTOROLA, COMBINA LA POTENCIA DE UN PROCESADOR SNAPDRAGON 680 CON 4GB DE RAM Y 128GB DE ALMACENAMIENTO INTERNO. CUENTA CON UNA PANTALLA DE 6,53” A UNA RESOLUCIÓN DE 1080X2400. Y POSEE UNA CÁMARA TRASERA PRINCIPAL DE 50MP, JUNTO CON UNA CÁMARA FRONTAL DE 8MP.
+        code: MotoG32
+        price: 1000
+        stock: 5
+        category: Celular
+        thumbnails:
+          - https://i.ibb.co/RY9T5v0/Moto-G32-P1.png
+          - https://i.ibb.co/8XBn4pV/Moto-G32-P2.png

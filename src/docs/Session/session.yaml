@@ -1,0 +1,63 @@
+paths:
+  /api/sesions/register:
+    post:
+      summary: Registro de usuario
+      tags:
+        - Session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/requestBodies/Register"
+      responses:
+        '200':
+          description: Registro exitoso (Esto indica que el registro se ha completado exitosamente).
+        '400':
+          description: >
+            Custom Error (Una o más propiedades en los datos de registro están faltando o no son válidas).
+        '401':
+          description: >
+            Ya existe una cuenta asociada a este correo. Presione en "Ingresa aquí" para iniciar sesión
+            (Esto indica que ya existe una cuenta asociada al correo ingresado, por ende, no es posible crear un nuevo usuario con el mismo correo. La persona puede avanzar al login).
+        '500':
+          description: >
+            - Error al obtener el usuario - Controller || Service || DAO
+              (Esto indica un error producido en las capas del módulo session al intentar validar en la BD la existencia de un usuario/cuenta, asociada al correo ingresado).
+            - Error al crear el carrito - Controller || Service || DAO
+              (Esto indica un error producido en las capas del módulo cart al intentar crear un nuevo carrito para asignarlo al usuario).
+            - Error al registrar al usuario - Controller || Service || DAO
+              (Esto indica un error producido en las capas del módulo session al intentar crear al nuevo usuario en la BD).
+            - Error de registro en local.passport.js - Register
+              (Esto indica un error en la estrategia de registro en el archivo local.passport.js).
+
+components:
+  requestBodies:
+    Register:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              first_name:
+                type: string
+                description: Nombre del usuario
+              last_name:
+                type: string
+                description: Apellido del usuario
+              email:
+                type: string
+                format: email
+                description: Dirección de correo electrónico del usuario
+              age:
+                type: number
+                description: Edad del usuario
+              password:
+                type: string
+                description: Contraseña del usuario
+            example:
+              first_name: Santiago
+              last_name: De los Santos
+              email: santiagodelossantos630@gmail.com
+              age: 23
+              password: Sd1234

@@ -16,8 +16,8 @@ import {
 // Import variables de entorno:
 import {
     envResetPassToken,
-    envCoderTokenCookie,
-    envCoderSecret
+    envCoderSecret,
+    envCoderTokenCookie
 } from '../config.js'
 
 // Clase para el Service de usuarios: 
@@ -216,7 +216,7 @@ export default class SessionService {
         return response;
     };
 
-    async changeRoleService(uid) {
+    async changeRoleService( uid, res) {
         let response = {};
         try {
             // Buscamos al usuario en la base de datos por su correo: 
@@ -230,42 +230,40 @@ export default class SessionService {
             } else if (resultDAO.status === "success") {
                 // Si el usaurio existe, extraemos su rol actual: 
                 let userRole = resultDAO.result.role;
-                if (userRole === "user") {
-                    // Si su rol actual es "user", lo cambiamos a "premium":
-                    const role = "premium";
-                    const updateUser = {
-                        role
-                    }
-                    const resultRolPremium = await this.sessionDAO.updateUser(uid, updateUser);
-                    // Validamos los resultados:
-                    if (resultRolPremium.status === "error") {
-                        response.statusCode = 500;
-                        response.message = resultRolPremium.message;
-                    } else if (resultRolPremium.status === "not found user") {
-                        response.statusCode = 404;
-                        response.message = "Usuario no encontrado.";
-                    } else if (resultRolPremium.status === "success") {
-                        response.statusCode = 200;
-                        response.message = `Usuario actualizado exitosamente, su rol a sido actualizado a premium.`;
-                    };
-                } else if (userRole === "premium") {
-                    // Si el usuario ya es premium lo pasamos a "user":
-                    const role = "user";
-                    const updateUser = {
-                        role
-                    }
-                    const resultRolUser = await this.sessionDAO.updateUser(uid, updateUser);
-                    // Validamos los resultados:
-                    if (resultRolUser.status === "error") {
-                        response.statusCode = 500;
-                        response.message = resultRolUser.message;
-                    } else if (resultRolUser.status === "not found user") {
-                        response.statusCode = 404;
-                        response.message = "Usuario no encontrado.";
-                    } else if (resultRolUser.status === "success") {
-                        response.statusCode = 200;
-                        response.message = `Usuario actualizado exitosamente, su rol a sido actualizado a user.`;
-                    };
+                const newRole = userRole === "user" ? "premium" : "user";
+                const updateUser = {
+                    role: newRole
+                };
+                // Enviamos el nuevo role al updateUser:
+                const resultRolPremium = await this.sessionDAO.updateUser(uid, updateUser);
+                // Validamos los resultados:
+                if (resultRolPremium.status === "error") {
+                    response.statusCode = 500;
+                    response.message = resultRolPremium.message;
+                } else if (resultRolPremium.status === "not found user") {
+                    response.statusCode = 404;
+                    response.message = "Usuario no encontrado.";
+                } else if (resultRolPremium.status === "success") {
+                    response.statusCode = 200;
+                    response.message = `Usuario actualizado exitosamente, su rol a sido actualizado a ${newRole}.`;
+                    // Traemos al usuario actualizado:
+                    const newUser = await this.sessionDAO.getUserByEmailOrNameOrId(uid);
+                    //  Actualizamos el role del usuario en el token: 
+                    let token = jwt.sign({
+                        email: newUser.result.email,
+                        first_name: newUser.result.first_name,
+                        role: newUser.result.role,
+                        cart: newUser.result.cart,
+                        userID: newUser.result._id
+                    }, envCoderSecret, {
+                        expiresIn: '7d'
+                    });
+                    // Sobrescribimos la cookie:
+                    res.cookie(envCoderTokenCookie, token, {
+                        httpOnly: true,
+                        signed: true,
+                        maxAge: 7 * 24 * 60 * 60 * 1000
+                    })
                 };
             };
         } catch (error) {
