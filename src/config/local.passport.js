@@ -65,7 +65,7 @@ export const initializePassportLocal = (req, res) => {
                 // Verificamos si el usuario ya esta registrado, en dicho caso le decimos que vaya al login:
                 else if (existSessionControl.statusCode === 200) {
                     return done(null, false, {
-                        statusCode: 401,
+                        statusCode: 409,
                         message: 'Ya existe una cuenta asociada a este correo. Presione en "Ingresa aquí" para iniciar sesión.'
                     });
                 }
@@ -153,9 +153,7 @@ export const initializePassportLocal = (req, res) => {
                         role: "admin",
                         cart: null,
                     };
-                    return done(null, userAdmin, {
-                        statusCode: 200,
-                    });
+                    return done(null, userAdmin, { statusCode: 200 });
                 }
 
                 // Si no es admin procedemos a logueo del usuario:
@@ -189,23 +187,21 @@ export const initializePassportLocal = (req, res) => {
                         // Si el usuario existe en la base de datos, verificamos que la contraseña sea válida:
                         if (!isValidPassword(user, password)) {
                             return done(null, false, {
-                                statusCode: 401,
+                                statusCode: 409,
                                 message: 'Existe una cuenta asociada a este correo pero, la contraseña ingresada es incorrecta.'
                             });
+                        } else {
+                            // Si el usuario existe y la contraseña es correcta, retornar el usuario autenticado:
+                            return done(null, user, { statusCode: 200 });
                         }
-
-                        // Si el usuario existe y la contraseña es correcta, retornar el usuario autenticado:
-                        return done(null, user, {
-                            statusCode: 200,
-                        });
                     }
                 }
-
             } catch (error) {
+                console.log(error)
                 req.logger.error(error)
                 return done(null, false, {
                     statusCode: 500,
-                    message: 'Error de registro en local.passport.js - Login: ' + error.message
+                    message: 'Error de login en local.passport.js - Login: ' + error.message
                 });
             };
         }))

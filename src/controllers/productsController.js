@@ -111,7 +111,8 @@ export default class ProductController {
         try {
             const limit = Number(req.query.limit) || 10;
             const page = Number(req.query.page) || 1;
-            let sort = Number(req.query.sort) || 1;
+            let sort = (req.query.sort !== undefined) ? Number(req.query.sort) : 1;
+            console.log(sort)
             let filtro = req.query.filtro || null;
             let filtroVal = req.query.filtroVal || null;
             const resultService = await this.productService.getAllProductsService(limit, page, sort, filtro, filtroVal);
@@ -190,9 +191,10 @@ export default class ProductController {
                     code: ErrorEnums.INVALID_ID_PRODUCT_ERROR
                 });
             } else if (!updatedFields || Object.keys(updatedFields).length === 0) {
+                let infoUp = JSON.stringify(updatedFields, null, 2);
                 CustomError.createError({
                     name: "Error al intentar actualizar el producto.",
-                    cause: ErrorGenerator.generateEmptyUpdateFieldsErrorInfo(updatedFields),
+                    cause: ErrorGenerator.generateEmptyUpdateFieldsErrorInfo(infoUp),
                     message: "No se proporcionaron campos válidos para la actualización del producto.",
                     code: ErrorEnums.INVALID_UPDATED_PRODUCT_FIELDS
                 });

@@ -70,7 +70,7 @@ app.use(passport.initialize());
 // Configuración de Swagger: 
 const swaggerOptions = {
     definition: {
-        openapi: '3.0.1',
+        openapi: '3.0.0',
         info: {
             title: 'Documentación eCommerce - Global Technology',
             description: 'Esta documentación corresponde al proyecto de eCommerce desarrollado por el alumno Santiago N. De los Santos como parte del curso de Backend de CoderHouse. A continuación, se presenta una descripción detallada de los modulos "products" y "carts.'

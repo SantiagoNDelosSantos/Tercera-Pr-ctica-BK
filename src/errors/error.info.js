@@ -46,8 +46,7 @@ export default class ErrorGenerator {
         * price: Debe ser un número positivo mayor que 0, se recibió ${productData.price}.
         * stock: Debe ser un número positivo mayor que 0, se recibió ${productData.stock}.
         * category: Debe ser un string, se recibió ${productData.category}.
-        * thumbnails: Debe ser un arreglo no vacío de URLs de imágenes, se recibió ${productData.thumbnails}.
-        `;
+        * thumbnails: Debe ser un arreglo no vacío de URLs de imágenes, se recibió ${productData.thumbnails}.`;
     }
 
     static generatePidErrorInfo(pid) {
